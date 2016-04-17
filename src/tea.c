@@ -89,7 +89,7 @@ void tea_encrypt_EBC(uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_v
     {
         for (j = len; j < i + 8; j++)
             *(data + j) = 0;
-        
+
         tea_block_encrypt(data + i, key);
     } else {
         tea_block_encrypt(data + i, key);
@@ -110,7 +110,7 @@ void tea_decrypt_EBC (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_
     {
         for (j = len; j < i + 8; j++)
             *(data + j) = 0;
-        
+
         tea_block_decrypt(data + i, key);
     } else {
         tea_block_decrypt(data + i, key);
@@ -131,15 +131,15 @@ void tea_encrypt_CBC (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_
         tea_block_encrypt(data+i, key);
         *iv = *d;
     }
-    
+
     if ( (i + 8) != len)
     {
         for (j = len; j < i + 8; j++)
             *(data + j) = 0;
-        
+
         uint64_t* iv = (uint64_t*)init_vector;
         uint64_t* d = (uint64_t*)(data+i);
-        *d = *d ^ *iv;        
+        *d = *d ^ *iv;
         tea_block_encrypt(data + i, key);
         *iv = *d;
     } else {
@@ -168,7 +168,7 @@ void tea_decrypt_CBC (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_
     {
         for (j = len; j < i + 8; j++)
             *(data + j) = 0;
-        
+
         last = *((uint64_t*)(data+i));
         tea_block_decrypt(data+i, key);
         (*((uint64_t*)(data+i))) ^= *((uint64_t*)(init_vector));
@@ -196,16 +196,16 @@ void tea_encrypt_PCBC (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init
         tea_block_encrypt(data+i, key);
         *iv =  *d ^ last;
     }
-    
+
     if ( (i + 8) != len)
     {
         for (j = len; j < i + 8; j++)
             *(data + j) = 0;
-        
+
         uint64_t* iv = (uint64_t*)init_vector;
         uint64_t* d = (uint64_t*)(data+i);
         last = *d;
-        *d = *d ^ *iv;        
+        *d = *d ^ *iv;
         tea_block_encrypt(data + i, key);
         *iv = *d ^ last;
     } else {
@@ -233,12 +233,12 @@ void tea_decrypt_PCBC (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init
         *d ^= *iv;
         *iv =  *d ^ last;
     }
-    
+
     if ( (i + 8) != len)
     {
         for (j = len; j < i + 8; j++)
             *(data + j) = 0;
-        
+
         uint64_t* iv = (uint64_t*)init_vector;
         uint64_t* d = (uint64_t*)(data+i);
         last = *d;
@@ -251,7 +251,7 @@ void tea_decrypt_PCBC (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init
         last = *d;
         tea_block_decrypt(data+i, key);
         *d ^= *iv;
-        *iv =  *d ^ last;        
+        *iv =  *d ^ last;
     }
 }
 
@@ -268,7 +268,7 @@ void tea_encrypt_CFB (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_
         *d = *d ^ *iv;
 	*iv = *d;
     }
-    
+
     if ( (i + 8) != len)
     {
         for (j = len; j < i + 8; j++)
@@ -298,7 +298,7 @@ void tea_decrypt_CFB (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_
         *d = *iv ^ last;
 	*iv = last;
     }
-    
+
     if ( (i + 8) != len)
     {
         for (j = len; j < i + 8; j++)
@@ -326,7 +326,7 @@ void tea_encrypt_OFB (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_
         tea_block_encrypt(init_vector, key);
         *d = *d ^ *iv;
     }
-    
+
     if ( (i + 8) != len)
     {
         for (j = len; j < i + 8; j++)
@@ -352,7 +352,7 @@ void tea_decrypt_OFB (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_
         tea_block_encrypt(init_vector, key);
         *d = *d ^ *iv;
     }
-    
+
     if ( (i + 8) != len)
     {
         for (j = len; j < i + 8; j++)
@@ -409,7 +409,7 @@ void parse_args(int argc, char** argv)
     //C -compakt szyfrue lub deszyfruje z do pliku z naglowkiem z kluczem i wektorem
     sprintf(tea_file_path_key, "%s", "key.bin");
     sprintf(tea_file_path_iv, "%s", "iv.bin");
-    
+
     while ((c = getopt (argc, argv, "edgm:D:")) != -1)
         switch (c)
         {
@@ -454,7 +454,7 @@ int write_bin_file(uint8_t* buffer, int len, const char* filename)
     int l = write(fd, buffer, len);
     if (l != len)
         return -1;
-    
+
     close (fd);
     return 0;
 }
@@ -499,7 +499,7 @@ int do_tea(void (*tea_block_operation)(uint8_t*, uint32_t, uint32_t*, uint8_t*))
     {
         fprintf(stderr, "---4\n");
         tea_block_operation(buffer, offset, tea_key, tea_init_vector);
-        
+
         r = write(STDOUT_FILENO, buffer, (offset/8 + ((offset%8 == 0)?0:1))*8);
         if (r <= 0)
         {
@@ -519,7 +519,7 @@ int main(int argc, char** argv)
 //    uint32_t key[] = { 0xabcd3245, 0x1639a1b2, 0xf32e2c2a, 0x321aaadd};
 
     parse_args(argc, argv);
-    
+
 //    print_data(data);
 //    print_key(key);
 
@@ -537,11 +537,11 @@ int main(int argc, char** argv)
         for (i=0;i<4;i++)
             tea_key[i] = tea_rand();
         i = write_bin_file((uint8_t*)tea_key, 16, tea_file_path_key);
-        
+
         if (i)
-            fprintf(stderr, "Cannot write key: %d\n", i); 
+            fprintf(stderr, "Cannot write key: %d\n", i);
     }
-    
+
     r = read_bin_file( (uint8_t*)tea_key, 16, tea_file_path_key);
     if (r)
         fprintf(stderr, "Cannot read key: %d\n", r);
@@ -549,22 +549,22 @@ int main(int argc, char** argv)
     r = read_bin_file( (uint8_t*)tea_init_vector, 8, tea_file_path_iv);
     if (r)
         fprintf(stderr, "Cannot read iv: %d\n", r);
-    
+
     if (tea_encrypt_flag)
     {
         int i = 0;
         for (i=0;i<2;i++)
             ((uint32_t*)tea_init_vector)[i] = tea_rand();
         i = write_bin_file((uint8_t*)tea_init_vector, 8, tea_file_path_iv);
-        
+
         if (i)
             fprintf(stderr, "Cannot write key: %d\n", i);
-        
+
         tea_block_operation = tea_encrypt_mode[tea_mode];
     } else if (tea_decrypt_flag)
     {
         tea_block_operation = tea_decrypt_mode[tea_mode];
     }
-    
+
     return do_tea(tea_block_operation);
 }
