@@ -257,22 +257,113 @@ void tea_decrypt_PCBC (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init
 
 void tea_encrypt_CFB (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_vector)
 {
-
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    for (i =0; i + 8 < len; i+= 8)
+    {
+        uint64_t* iv = (uint64_t*)init_vector;
+        uint64_t* d = (uint64_t*)(data+i);
+        tea_block_encrypt(init_vector, key);
+        *d = *d ^ *iv;
+	*iv = *d;
+    }
+    
+    if ( (i + 8) != len)
+    {
+        for (j = len; j < i + 8; j++)
+            *(data + j) = 0;
+    }
+    {
+        uint64_t* iv = (uint64_t*)init_vector;
+        uint64_t* d = (uint64_t*)(data+i);
+        tea_block_encrypt(init_vector, key);
+        *d = *d ^ *iv;
+	*iv = *d;
+    }
 }
 
 void tea_decrypt_CFB (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_vector)
 {
-
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    uint64_t last;
+    for (i =0; i + 8 < len; i+= 8)
+    {
+        uint64_t* iv = (uint64_t*)init_vector;
+        uint64_t* d = (uint64_t*)(data+i);
+	last = *d;
+        tea_block_encrypt(init_vector, key);
+        *d = *iv ^ last;
+	*iv = last;
+    }
+    
+    if ( (i + 8) != len)
+    {
+        for (j = len; j < i + 8; j++)
+            *(data + j) = 0;
+    }
+    {
+	uint64_t* iv = (uint64_t*)init_vector;
+        uint64_t* d = (uint64_t*)(data+i);
+	last = *d;
+        tea_block_encrypt(init_vector, key);
+        *d = *iv ^ last;
+	*iv = last;
+    }
 }
 
 void tea_encrypt_OFB (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_vector)
 {
-
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    for (i =0; i + 8 < len; i+= 8)
+    {
+        uint64_t* iv = (uint64_t*)init_vector;
+        uint64_t* d = (uint64_t*)(data+i);
+        tea_block_encrypt(init_vector, key);
+        *d = *d ^ *iv;
+    }
+    
+    if ( (i + 8) != len)
+    {
+        for (j = len; j < i + 8; j++)
+            *(data + j) = 0;
+    }
+    {
+	uint64_t* iv = (uint64_t*)init_vector;
+        uint64_t* d = (uint64_t*)(data+i);
+        tea_block_encrypt(init_vector, key);
+        *d = *d ^ *iv;
+    }
 }
 
 void tea_decrypt_OFB (uint8_t* data, uint32_t len, uint32_t* key, uint8_t* init_vector)
 {
-
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    for (i =0; i + 8 < len; i+= 8)
+    {
+        uint64_t* iv = (uint64_t*)init_vector;
+        uint64_t* d = (uint64_t*)(data+i);
+        tea_block_encrypt(init_vector, key);
+        *d = *d ^ *iv;
+    }
+    
+    if ( (i + 8) != len)
+    {
+        for (j = len; j < i + 8; j++)
+            *(data + j) = 0;
+    }
+    {
+	uint64_t* iv = (uint64_t*)init_vector;
+        uint64_t* d = (uint64_t*)(data+i);
+        tea_block_encrypt(init_vector, key);
+        *d = *d ^ *iv;
+    }
 }
 
 
