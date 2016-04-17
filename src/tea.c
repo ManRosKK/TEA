@@ -401,16 +401,24 @@ void (*tea_decrypt_mode[])(uint8_t*, uint32_t, uint32_t*, uint8_t*) = {
     tea_decrypt_OFB
 };
 
+void print_help(char* name)
+{
+    printf("%s program encrypts and decrypts data with Tiny Encryption Algorithm.\n"
+	   "\t Avaible options: edghm:D: .\n"
+	   "\n"
+	   "\tProgram encrypts (-e) or decrypts (-d) data from standard input and\n"
+	   "\tsends dat to standard output. Program uses or generates (-g) input\n"
+	   "\tvector and key to/from file key.bin and iv.bin in directory set by -D.\n"
+	   "\tDefault search directory is run directory\n", name);
+}
 
 void parse_args(int argc, char** argv)
 {
     int c;
-    // c- sciezka do pliku z kluczem i wektorem poczotkowym (jesli nie ma to przy szyfrowaniu jest tworzony
-    //C -compakt szyfrue lub deszyfruje z do pliku z naglowkiem z kluczem i wektorem
     sprintf(tea_file_path_key, "%s", "key.bin");
     sprintf(tea_file_path_iv, "%s", "iv.bin");
 
-    while ((c = getopt (argc, argv, "edgm:D:")) != -1)
+    while ((c = getopt (argc, argv, "edghm:D:")) != -1)
         switch (c)
         {
         case 'e':
@@ -426,6 +434,10 @@ void parse_args(int argc, char** argv)
             sprintf(tea_file_path_key, "%s%s",optarg, "key.bin");
             sprintf(tea_file_path_iv, "%s%s", optarg, "iv.bin");
             break;
+	case 'h':
+	    print_help(argv[0]);
+	    exit(0);
+	    break;
         case 'm':
             if (strcmp(optarg, "ebc") == 0)
                 tea_mode = EBC;
@@ -477,14 +489,11 @@ int do_tea(void (*tea_block_operation)(uint8_t*, uint32_t, uint32_t*, uint8_t*))
     int r = 0;
     int offset = 0;
     uint8_t buffer[8*128];
-    fprintf(stderr, "---1\n");
     while ( (r = read(STDIN_FILENO, buffer + offset, (8*128)-offset)) > 0)
     {
-        fprintf(stderr, "---2 : %d\n", r);
         offset += r;
         if (offset >= 8*128)
         {
-            fprintf(stderr, "---3\n");
             tea_block_operation(buffer, offset, tea_key, tea_init_vector);
             r = write(STDOUT_FILENO, buffer, offset);
             if (r <= 0)
@@ -515,21 +524,7 @@ int main(int argc, char** argv)
     int r;
     void (*tea_block_operation)(uint8_t*, uint32_t, uint32_t*, uint8_t*);
     srand(time(NULL));
-//    uint8_t data[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
-//    uint32_t key[] = { 0xabcd3245, 0x1639a1b2, 0xf32e2c2a, 0x321aaadd};
-
     parse_args(argc, argv);
-
-//    print_data(data);
-//    print_key(key);
-
-//    tea_encrypt_EBC(data, sizeof(data), key, NULL);
-
-    //  print_data(data);
-
-//    tea_decrypt_EBC(data, sizeof(data), key, NULL);
-
-//    print_data(data);
 
     if (tea_generate_flag)
     {
