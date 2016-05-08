@@ -484,11 +484,12 @@ int read_bin_file (uint8_t* buffer, int len,  const char* filename)
     return 0;
 }
 
-int do_tea(void (*tea_block_operation)(uint8_t*, uint32_t, uint32_t*, uint8_t*))
+int do_tea(void (*tea_block_operation)(uint8_t*, uint32_t, uint32_t*, uint8_t*), int discard_bytes)
 {
     int r = 0;
     int offset = 0;
     uint8_t buffer[8*128];
+    
     while ( (r = read(STDIN_FILENO, buffer + offset, (8*128)-offset)) > 0)
     {
         offset += r;
@@ -506,7 +507,13 @@ int do_tea(void (*tea_block_operation)(uint8_t*, uint32_t, uint32_t*, uint8_t*))
     }
     if (offset)
     {
+	char tmp = 0;
         fprintf(stderr, "---4\n");
+	if (discard_bytes)
+	{
+	    tmp = buffer[offset-1];
+	    offset -= tmp;
+	}
         tea_block_operation(buffer, offset, tea_key, tea_init_vector);
 
         r = write(STDOUT_FILENO, buffer, (offset/8 + ((offset%8 == 0)?0:1))*8);
@@ -516,12 +523,25 @@ int do_tea(void (*tea_block_operation)(uint8_t*, uint32_t, uint32_t*, uint8_t*))
             return r;
         }
     }
+
+    if (discard_bytes == 0)
+    {
+	char tmp;
+	tmp = offset%8 ? 8-offset%8 : 0; 
+	r = write(STDOUT_FILENO, &tmp, 1);
+	if (r <= 0)
+	{
+	    fprintf(stderr, "Cannot write to output\n");
+	    return r;
+	}
+    }
     return 0;
 }
 
 int main(int argc, char** argv)
 {
     int r;
+    int mode = 0;
     void (*tea_block_operation)(uint8_t*, uint32_t, uint32_t*, uint8_t*);
     srand(time(NULL));
     parse_args(argc, argv);
@@ -558,8 +578,9 @@ int main(int argc, char** argv)
         tea_block_operation = tea_encrypt_mode[tea_mode];
     } else if (tea_decrypt_flag)
     {
+	mode = 1;
         tea_block_operation = tea_decrypt_mode[tea_mode];
     }
 
-    return do_tea(tea_block_operation);
+    return do_tea(tea_block_operation, mode);
 }
