@@ -380,6 +380,7 @@ enum tea_mode_t tea_mode = EBC;
 int tea_encrypt_flag = 0;
 int tea_decrypt_flag = 0;
 int tea_generate_flag = 0;
+int tea_close_flag = 0;
 char tea_file_path_key[1024];
 char tea_file_path_iv[1024];
 uint32_t tea_key[4];
@@ -418,7 +419,7 @@ void parse_args(int argc, char** argv)
     sprintf(tea_file_path_key, "%s", "key.bin");
     sprintf(tea_file_path_iv, "%s", "iv.bin");
 
-    while ((c = getopt (argc, argv, "edghm:D:")) != -1)
+    while ((c = getopt (argc, argv, "ecdghm:D:")) != -1)
         switch (c)
         {
         case 'e':
@@ -452,6 +453,9 @@ void parse_args(int argc, char** argv)
             else if (strcmp(optarg, "cbc") == 0)
                 tea_mode = CBC;
             break;
+	case 'c':
+	    tea_close_flag = 1;
+	    break;
         default:
             abort ();
         }
@@ -508,15 +512,20 @@ int do_tea(void (*tea_block_operation)(uint8_t*, uint32_t, uint32_t*, uint8_t*),
     if (offset)
     {
 	char tmp = 0;
-        fprintf(stderr, "---4\n");
+	// fprintf(stderr, "---4 %d\n", discard_bytes);
 	if (discard_bytes)
 	{
-	    tmp = buffer[offset-1];
-	    offset -= tmp;
+	    tmp = (-1)*(buffer[offset-1]);
+	    //    fprintf(stderr, "-- %d %d\n", offset, buffer[offset-1]);
+	    offset -= 1;
+	    if (!tmp && offset == 0)
+		return 0;
+	} else {
+	    tmp = offset%8 ? 8-offset%8 : 0;
 	}
         tea_block_operation(buffer, offset, tea_key, tea_init_vector);
-
-        r = write(STDOUT_FILENO, buffer, (offset/8 + ((offset%8 == 0)?0:1))*8);
+//(offset/8 + ((offset%8 == 0)?0:1))*8
+        r = write(STDOUT_FILENO, buffer, offset+tmp);
         if (r <= 0)
         {
             fprintf(stderr, "Cannot write to output\n");
@@ -581,6 +590,7 @@ int main(int argc, char** argv)
 	mode = 1;
         tea_block_operation = tea_decrypt_mode[tea_mode];
     }
-
+    if (tea_close_flag)
+	return 0;
     return do_tea(tea_block_operation, mode);
 }
